@@ -2,17 +2,17 @@
 An Android widget that tells the time in a very awkward way ;) 
 
 ## Tells the correct time in a roundabout way:
-![exacttime_1](/Screenshots/Screenshot_exacttime_1.png)  
+![exacttime_1](/Screenshots/exacttime_1.png)
 
 <br/><br/>
 
 ## For experts: get precise (and very awkward) to the minute accuracy! 
-![excattime_0](/Screenshots/Screenshot_exacttime_0.png)  
+![excattime_0](/Screenshots/exacttime_0.png)
 
 <br/><br/>
 
 ## Optionally round to the nearest hour for a sliglty less awkward time:
-![rounded_time](/Screenshots/Screenshot_roundedtime.png)
+![rounded_time](/Screenshots/roundedtime.png)
 
 <br/><br/>
 
