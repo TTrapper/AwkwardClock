@@ -15,22 +15,23 @@ import android.widget.RemoteViews;
  * Implementation of App Widget functionality.
  */
 public class AwkwardAppWidgetProvider extends AppWidgetProvider {
-    private static boolean registered = false;
 
-    BroadcastReceiver receiver = new BroadcastReceiver() {
+    private static BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent)
         {
-        if (Intent.ACTION_TIME_TICK.equals(intent.getAction())) {
-            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-            ComponentName thisAppWidget = new ComponentName(context,
-                    AwkwardAppWidgetProvider.class);
-            int ids[] = appWidgetManager.getAppWidgetIds(thisAppWidget);
-            for (int appWidgetID: ids) {
-                boolean doRound = getRoundingPref(context, appWidgetID);
-                updateAppWidget(context, appWidgetManager, appWidgetID, doRound);
+            Log.d(getClass().getName(), String.format("Widget Provider received intent: %s",
+                    intent));
+            if (Intent.ACTION_TIME_TICK.equals(intent.getAction())) {
+                AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+                ComponentName thisAppWidget = new ComponentName(context,
+                        AwkwardAppWidgetProvider.class);
+                int [] ids = appWidgetManager.getAppWidgetIds(thisAppWidget);
+                for (int appWidgetID: ids) {
+                    boolean doRound = getRoundingPref(context, appWidgetID);
+                    updateAppWidget(context, appWidgetManager, appWidgetID, doRound);
+                }
             }
-        }
         }
     };
 
@@ -69,31 +70,25 @@ public class AwkwardAppWidgetProvider extends AppWidgetProvider {
 
     @Override
     public void onDisabled(Context context) {
+        super.onDisabled(context);
         // Enter relevant functionality for when the last widget is disabled
         unregisterReceiver(context);
     }
 
-    @Override
-    public void onReceive(Context context, Intent intent){
-        super.onReceive(context, intent);
-        registerReceiver(context);
-    }
-
     private void registerReceiver(Context context) {
-        if (!registered) {
-            Log.d(getClass().getName(), "registering receiver");
-            context.getApplicationContext().registerReceiver(receiver,
-                    new IntentFilter(Intent.ACTION_TIME_TICK));
-            registered = true;
-        }
+        Log.d(getClass().getName(), "registering receiver");
+        context.getApplicationContext().registerReceiver(receiver,
+                new IntentFilter(Intent.ACTION_TIME_TICK));
     }
 
     private void unregisterReceiver(Context context) {
-        if (registered) {
-            Log.d(getClass().getName(), "unregistering receiver");
+        Log.d(getClass().getName(), "unregistering receiver");
+        try {
             context.getApplicationContext().unregisterReceiver(receiver);
-            registered = false;
+        } catch (IllegalArgumentException e) {
+            Log.e(getClass().getName(), "Unregistering receiver failed", e);
         }
+
     }
 
 }
