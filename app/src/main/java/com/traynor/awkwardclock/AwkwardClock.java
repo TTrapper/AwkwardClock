@@ -1,8 +1,6 @@
-package com.example.awkwardclock;
+package com.traynor.awkwardclock;
 
 import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 import android.util.SparseArray;
 import android.util.SparseIntArray;

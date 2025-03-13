@@ -1,4 +1,4 @@
-package com.example.awkwardclock;
+package com.traynor.awkwardclock;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -15,7 +15,7 @@ import android.widget.RemoteViews;
 public class AwkwardAppWidgetProvider extends AppWidgetProvider {
 
     private static final String TAG = "AwkwardAppWidget";
-    private static final String ACTION_UPDATE_WIDGET = "com.example.awkwardclock.ACTION_UPDATE_WIDGET";
+    private static final String ACTION_UPDATE_WIDGET = "com.traynor.awkwardclock.ACTION_UPDATE_WIDGET";
 
     // Helper method for debug logging; logs only in debug builds.
     private static void debugLog(String message) {
@@ -86,15 +86,24 @@ public class AwkwardAppWidgetProvider extends AppWidgetProvider {
         long delay = 60000 - (now % 60000);
         long nextUpdateTimeMillis = now + delay;
 
-        // Use the appropriate alarm method depending on Android version.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC, nextUpdateTimeMillis, pendingIntent);
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            alarmManager.setExact(AlarmManager.RTC, nextUpdateTimeMillis, pendingIntent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { // Android 12 (API 31) and above
+            if (alarmManager.canScheduleExactAlarms()) {
+                // Permission granted, schedule an exact alarm.
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC, nextUpdateTimeMillis, pendingIntent);
+                debugLog("Scheduled exact alarm at " + nextUpdateTimeMillis);
+            } else {
+                // Permission not granted; fall back to an inexact alarm.
+                // Using setWindow() with a window of 10 minutes (the minimum allowed) as a fallback.
+                alarmManager.setWindow(AlarmManager.RTC, nextUpdateTimeMillis, 10 * 60 * 1000, pendingIntent);
+                debugLog("Exact alarm permission not granted. Scheduled inexact alarm using setWindow.");
+            }
         } else {
-            alarmManager.set(AlarmManager.RTC, nextUpdateTimeMillis, pendingIntent);
+            // For older versions, schedule exact alarms as usual.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC, nextUpdateTimeMillis, pendingIntent);
+            }
+            debugLog("Scheduled next update at " + nextUpdateTimeMillis + " (in " + delay + "ms)");
         }
-        debugLog("Scheduled next update at " + nextUpdateTimeMillis + " (in " + delay + "ms)");
     }
 
     /**

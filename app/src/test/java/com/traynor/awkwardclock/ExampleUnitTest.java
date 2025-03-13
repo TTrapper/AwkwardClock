@@ -1,4 +1,4 @@
-package com.example.awkwardclock;
+package com.traynor.awkwardclock;
 
 import org.junit.Test;
 

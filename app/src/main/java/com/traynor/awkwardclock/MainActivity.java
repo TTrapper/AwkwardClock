@@ -1,4 +1,4 @@
-package com.example.awkwardclock;
+package com.traynor.awkwardclock;
 
 import androidx.appcompat.app.AppCompatActivity;
 
