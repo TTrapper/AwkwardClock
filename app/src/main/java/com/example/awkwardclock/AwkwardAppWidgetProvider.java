@@ -14,7 +14,15 @@ import android.widget.RemoteViews;
 
 public class AwkwardAppWidgetProvider extends AppWidgetProvider {
 
+    private static final String TAG = "AwkwardAppWidget";
     private static final String ACTION_UPDATE_WIDGET = "com.example.awkwardclock.ACTION_UPDATE_WIDGET";
+
+    // Helper method for debug logging; logs only in debug builds.
+    private static void debugLog(String message) {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, message);
+        }
+    }
 
     static boolean getRoundingPref(Context context, int appWidgetID) {
         SharedPreferences prefs = context.getSharedPreferences(
@@ -25,7 +33,7 @@ public class AwkwardAppWidgetProvider extends AppWidgetProvider {
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId, boolean doRound) {
         String awkwardTime = AwkwardClock.getTime(doRound);
-        Log.d("AwkwardAppWidget", "updateAppWidget: widget id " + appWidgetId + ", time: " + awkwardTime);
+        debugLog("updateAppWidget: widget id " + appWidgetId + ", time: " + awkwardTime);
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.awkward_appwidget);
         views.setTextViewText(R.id.appwidget_text, awkwardTime);
         appWidgetManager.updateAppWidget(appWidgetId, views);
@@ -34,23 +42,23 @@ public class AwkwardAppWidgetProvider extends AppWidgetProvider {
     @Override
     public void onEnabled(Context context) {
         super.onEnabled(context);
-        Log.d("AwkwardAppWidget", "Widget Provider enabled - scheduling alarm");
+        debugLog("Widget Provider enabled - scheduling alarm");
         scheduleNextUpdate(context);
     }
 
     @Override
     public void onDisabled(Context context) {
         super.onDisabled(context);
-        Log.d("AwkwardAppWidget", "Widget Provider disabled - cancelling alarm");
+        debugLog("Widget Provider disabled - cancelling alarm");
         cancelAlarm(context);
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
-        // Check if our custom action was received
+        // Check if our custom action was received.
         if (ACTION_UPDATE_WIDGET.equals(intent.getAction())) {
-            Log.d("AwkwardAppWidget", "onReceive for ACTION_UPDATE_WIDGET");
+            debugLog("onReceive for ACTION_UPDATE_WIDGET");
             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
             ComponentName thisAppWidget = new ComponentName(context, AwkwardAppWidgetProvider.class);
             int[] ids = appWidgetManager.getAppWidgetIds(thisAppWidget);
@@ -58,13 +66,13 @@ public class AwkwardAppWidgetProvider extends AppWidgetProvider {
                 boolean doRound = getRoundingPref(context, appWidgetID);
                 updateAppWidget(context, appWidgetManager, appWidgetID, doRound);
             }
-            // Schedule the next update
+            // Schedule the next update.
             scheduleNextUpdate(context);
         }
     }
 
     /**
-     * Schedules the next update in 1 minute using AlarmManager.
+     * Schedules the next update aligned with the next minute boundary using AlarmManager.
      */
     private void scheduleNextUpdate(Context context) {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
@@ -74,11 +82,11 @@ public class AwkwardAppWidgetProvider extends AppWidgetProvider {
                 context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
 
         long now = System.currentTimeMillis();
-        // Calculate delay until next minute boundary
+        // Calculate delay until the next minute boundary.
         long delay = 60000 - (now % 60000);
         long nextUpdateTimeMillis = now + delay;
 
-        // Use the appropriate alarm method depending on Android version
+        // Use the appropriate alarm method depending on Android version.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC, nextUpdateTimeMillis, pendingIntent);
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -86,9 +94,8 @@ public class AwkwardAppWidgetProvider extends AppWidgetProvider {
         } else {
             alarmManager.set(AlarmManager.RTC, nextUpdateTimeMillis, pendingIntent);
         }
-        Log.d("AwkwardAppWidget", "Scheduled next update at " + nextUpdateTimeMillis + " (in " + delay + "ms)");
+        debugLog("Scheduled next update at " + nextUpdateTimeMillis + " (in " + delay + "ms)");
     }
-
 
     /**
      * Cancels the scheduled alarm.
@@ -100,6 +107,6 @@ public class AwkwardAppWidgetProvider extends AppWidgetProvider {
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
         alarmManager.cancel(pendingIntent);
-        Log.d("AwkwardAppWidget", "Cancelled alarm update");
+        debugLog("Cancelled alarm update");
     }
 }
